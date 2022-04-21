@@ -87,6 +87,8 @@ public class BaSyxContext extends LinkedHashMap<String, HttpServlet> {
 
 	@Nullable
 	private JwtBearerTokenAuthenticationConfiguration jwtBearerTokenAuthenticationConfiguration;
+	
+	private String accessControlAllowOrigin;
 
 	/**
 	 * Constructor with default port

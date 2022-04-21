@@ -27,6 +27,7 @@ package org.eclipse.basyx.extensions.aas.api.mqtt;
 import org.eclipse.basyx.aas.restapi.observing.IAASAPIObserver;
 import org.eclipse.basyx.aas.restapi.observing.ObservableAASAPI;
 import org.eclipse.basyx.extensions.shared.mqtt.MqttEventService;
+import org.eclipse.basyx.submodel.metamodel.api.identifier.IIdentifier;
 import org.eclipse.basyx.submodel.metamodel.api.reference.IKey;
 import org.eclipse.basyx.submodel.metamodel.api.reference.IReference;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -45,9 +46,20 @@ import org.slf4j.LoggerFactory;
  */
 public class MqttAASAPIObserver extends MqttEventService implements IAASAPIObserver {
 	private static Logger logger = LoggerFactory.getLogger(MqttAASAPIObserver.class);
-
-	// The underlying AASAPI
+	
 	protected ObservableAASAPI observedAPI;
+	
+	private IIdentifier aasIdentifier;
+	
+	private IIdentifier submodelIdentifier;
+	
+	public MqttAASAPIObserver(MqttClient client, IIdentifier aasId, IIdentifier submodelIdentifier) throws MqttException {
+		super(client);
+		
+		this.aasIdentifier = aasId;
+		
+		this.submodelIdentifier = submodelIdentifier;
+	}
 
 	/**
 	 * Constructor for adding this MQTT extension on top of another AASAPI
@@ -67,7 +79,6 @@ public class MqttAASAPIObserver extends MqttEventService implements IAASAPIObser
 	public MqttAASAPIObserver(ObservableAASAPI observedAPI, String brokerEndpoint, String clientId, MqttClientPersistence persistence) throws MqttException {
 		super(brokerEndpoint, clientId, persistence);
 		logger.info("Create new MQTT AASAPI for endpoint " + brokerEndpoint);
-		this.observedAPI = observedAPI;
 		observedAPI.addObserver(this);
 	}
 
@@ -89,7 +100,6 @@ public class MqttAASAPIObserver extends MqttEventService implements IAASAPIObser
 	public MqttAASAPIObserver(ObservableAASAPI observedAPI, String serverEndpoint, String clientId, String user, char[] pw, MqttClientPersistence persistence) throws MqttException {
 		super(serverEndpoint, clientId, user, pw);
 		logger.info("Create new MQTT AASAPI for endpoint " + serverEndpoint);
-		this.observedAPI = observedAPI;
 		observedAPI.addObserver(this);
 	}
 
@@ -104,7 +114,6 @@ public class MqttAASAPIObserver extends MqttEventService implements IAASAPIObser
 	 */
 	public MqttAASAPIObserver(ObservableAASAPI observedAPI, MqttClient client) throws MqttException {
 		super(client);
-		this.observedAPI = observedAPI;
 		observedAPI.addObserver(this);
 	}
 

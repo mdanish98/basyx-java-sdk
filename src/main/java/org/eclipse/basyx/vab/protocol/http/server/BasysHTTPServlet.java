@@ -65,6 +65,11 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 */
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.addHeader("Allow-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
+		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+		
 		if (request.getMethod().equalsIgnoreCase("PATCH")) {
 			doPatch(request, response);
 		} else {
