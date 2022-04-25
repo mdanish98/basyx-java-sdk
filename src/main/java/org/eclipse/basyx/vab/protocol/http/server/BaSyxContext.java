@@ -266,4 +266,8 @@ public class BaSyxContext extends LinkedHashMap<String, HttpServlet> {
 	public void setJwtBearerTokenAuthenticationConfiguration(@Nullable final JwtBearerTokenAuthenticationConfiguration jwtBearerTokenAuthenticationConfiguration) {
 		this.jwtBearerTokenAuthenticationConfiguration = jwtBearerTokenAuthenticationConfiguration;
 	}
+	
+	public void setCrossOriginResourceSharingConfiguration(@Nullable final String accessControlAllowOrigin) {
+		this.accessControlAllowOrigin = accessControlAllowOrigin;
+	}
 }

@@ -65,7 +65,7 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String serverEndpoint, String clientId) throws MqttException {
 		this(observedAPI, serverEndpoint, clientId, new MqttDefaultFilePersistence());
 		
-		this(clientId, getAASId(observedAPI), getSubmodelId(observedAPI));
+//		this(clientId, getAASId(observedAPI), getSubmodelId(observedAPI));
 	}
 
 	/**
