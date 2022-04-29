@@ -41,8 +41,8 @@ import org.eclipse.basyx.vab.modelprovider.VABPathTools;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
-import org.etsi.uri.x01903.v13.impl.CRLIdentifierTypeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,39 +50,59 @@ import org.slf4j.LoggerFactory;
  * Implementation of {@link ISubmodelAPIObserver} Triggers MQTT events for
  * different CRUD operations on the submodel.
  * 
- * @author conradi
+ * @author conradi, danish
  *
  */
 public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmodelAPIObserver {
 	private static Logger logger = LoggerFactory.getLogger(MqttSubmodelAPIObserver.class);
-
-	// The underlying SubmodelAPI
-//	protected ObservableSubmodelAPI observedAPI;
 
 	// Submodel Element whitelist for filtering
 	protected boolean useWhitelist = false;
 	protected Set<String> whitelist = new HashSet<>();
 	
 	private IIdentifier aasIdentifier;
-	
 	private IIdentifier submodelIdentifier;
 
+	/**
+	 * Constructor for adding this MQTT extension on top of another SubmodelAPI
+	 * 
+	 * @param client
+	 *            An already connected mqtt client
+	 * @param aasId 
+	 * @param submodelIdentifier
+	 * @param observedAPI
+	 *            The underlying submodelAPI
+	 * @throws MqttException
+	 */
 	public MqttSubmodelAPIObserver(MqttClient client, IIdentifier aasId, IIdentifier submodelIdentifier, ObservableSubmodelAPI observedAPI) throws MqttException {
 		super(client);
 		
-		mqttClient.connect();
+		connectMqttClientIfRequired();
 		
 		this.aasIdentifier = aasId;
-		
 		this.submodelIdentifier = submodelIdentifier;
 		
 		observedAPI.addObserver(this);
 		
-		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, getSubmodelId2(observedAPI).getId());
+		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, this.submodelIdentifier.getId());
 	}
 	
-	public MqttSubmodelAPIObserver(String clientId, IIdentifier aasId, IIdentifier submodelIdentifier, String user, char[] pw, String serverEndpoint, ObservableSubmodelAPI observedAPI) throws MqttException {
-		super(serverEndpoint, clientId, user, pw);
+	/**
+	 * Constructor for adding this MQTT extension on top of another SubmodelAPI with
+	 * credentials
+	 * 
+	 * @param clientId
+	 * @param aasId 
+	 * @param submodelIdentifier
+	 * @param user 
+	 * @param password
+	 * @param serverEndpoint
+	 * @param observedAPI
+	 *            The underlying submodelAPI
+	 * @throws MqttException
+	 */
+	public MqttSubmodelAPIObserver(String clientId, IIdentifier aasId, IIdentifier submodelIdentifier, String user, char[] password, String serverEndpoint, ObservableSubmodelAPI observedAPI) throws MqttException {
+		super(serverEndpoint, clientId, user, password);
 		
 		this.aasIdentifier = aasId;
 		
@@ -90,7 +110,7 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 		
 		observedAPI.addObserver(this);
 		
-		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, getSubmodelId2(observedAPI).getId());
+		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, this.submodelIdentifier.getId());
 	}
 	
 	/**
@@ -99,26 +119,24 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	 * @param observedAPI
 	 *            The underlying submodelAPI
 	 * @throws MqttException
+	 * 
+	 * @deprecated This constructor is deprecated please use {@link #MqttSubmodelAPIObserver(MqttClient, IIdentifier, IIdentifier, ObservableSubmodelAPI)} instead.
 	 */
+	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String serverEndpoint, String clientId) throws MqttException {
 		this(observedAPI, serverEndpoint, clientId, new MqttDefaultFilePersistence());
-		
-//		this(new MqttClient(serverEndpoint, clientId, new MqttDefaultFilePersistence()), getAASId2(observedAPI), getSubmodelId2(observedAPI));
-		System.out.print("In Constructor 1");
 	}
 
 	/**
 	 * Constructor for adding this MQTT extension on top of another SubmodelAPI with
 	 * a custom persistence strategy
+	 * 
+	 * @deprecated This constructor is deprecated please use {@link #MqttSubmodelAPIObserver(MqttClient, IIdentifier, IIdentifier, ObservableSubmodelAPI)} instead.
 	 */
+	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String brokerEndpoint, String clientId, MqttClientPersistence persistence) throws MqttException {
-		this(new MqttClient(brokerEndpoint, clientId, persistence), getAASId2(observedAPI), getSubmodelId2(observedAPI), observedAPI);
-//		super(brokerEndpoint, clientId, persistence);
+		this(new MqttClient(brokerEndpoint, clientId, persistence), getAASId(observedAPI), getSubmodelId(observedAPI), observedAPI);
 		logger.info("Create new MQTT submodel for endpoint " + brokerEndpoint);
-		System.out.print("In Constructor 2");
-//		this.observedAPI = observedAPI;
-//		observedAPI.addObserver(this);
-//		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, getSubmodelId2(observedAPI).getId());
 	}
 
 	/**
@@ -127,7 +145,10 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	 * @param observedAPI
 	 *            The underlying submodelAPI
 	 * @throws MqttException
+	 * 
+	 * @deprecated This constructor is deprecated please use {@link #MqttSubmodelAPIObserver(String, IIdentifier, IIdentifier, String, char[], String, ObservableSubmodelAPI)} instead.
 	 */
+	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String serverEndpoint, String clientId, String user, char[] pw) throws MqttException {
 		this(observedAPI, serverEndpoint, clientId, user, pw, new MqttDefaultFilePersistence());
 		System.out.print("In Constructor 3");
@@ -136,15 +157,13 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	/**
 	 * Constructor for adding this MQTT extension on top of another SubmodelAPI with
 	 * credentials and persistency strategy
+	 * 
+	 * @deprecated This constructor is deprecated please use {@link #MqttSubmodelAPIObserver(String, IIdentifier, IIdentifier, String, char[], String, ObservableSubmodelAPI)} instead.
 	 */
+	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String serverEndpoint, String clientId, String user, char[] pw, MqttClientPersistence persistence) throws MqttException {
-		this(clientId, getAASId2(observedAPI), getSubmodelId2(observedAPI), user, pw, serverEndpoint, observedAPI);
-//		super(serverEndpoint, clientId, user, pw);
+		this(clientId, getAASId(observedAPI), getSubmodelId(observedAPI), user, pw, serverEndpoint, observedAPI);
 		logger.info("Create new MQTT submodel for endpoint " + serverEndpoint);
-		System.out.print("In Constructor 4");
-//		this.observedAPI = observedAPI;
-//		observedAPI.addObserver(this);
-//		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, observedAPI.getSubmodel().getIdentification().getId());
 	}
 
 	/**
@@ -155,14 +174,18 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	 * @param client
 	 *            An already connected mqtt client
 	 * @throws MqttException
+	 * 
+	 * @deprecated This constructor is deprecated please use {@link #MqttSubmodelAPIObserver(MqttClient, IIdentifier, IIdentifier, ObservableSubmodelAPI)} instead.
 	 */
+	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, MqttClient client) throws MqttException {
-		this(client, getAASId2(observedAPI), getSubmodelId2(observedAPI), observedAPI);
-//		super(client);
-//		this.observedAPI = observedAPI;
-		System.out.print("In Constructor 5");
-//		observedAPI.addObserver(this);
-//		sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_CREATESUBMODEL, observedAPI.getSubmodel().getIdentification().getId());
+		this(client, getAASId(observedAPI), getSubmodelId(observedAPI), observedAPI);
+	}
+	
+	private void connectMqttClientIfRequired() throws MqttSecurityException, MqttException {
+		if(!mqttClient.isConnected()) {
+			mqttClient.connect();
+		}
 	}
 
 	/**
@@ -206,7 +229,6 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	@Override
 	public void elementAdded(String idShortPath, Object newValue) {
 		if (filter(idShortPath)) {
-			System.out.println("getCombined Msg Added : " + getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 			sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_ADDELEMENT, getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 		}
 	}
@@ -214,7 +236,6 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	@Override
 	public void elementDeleted(String idShortPath) {
 		if (filter(idShortPath)) {
-			System.out.println("getCombined Msg Delete : " + getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 			sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_DELETEELEMENT, getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 		}
 	}
@@ -222,7 +243,6 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	@Override
 	public void elementUpdated(String idShortPath, Object newValue) {
 		if (filter(idShortPath)) {
-			System.out.println("getCombined Msg Update : " + getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 			sendMqttMessage(MqttSubmodelAPIHelper.TOPIC_UPDATEELEMENT, getCombinedMessage(aasIdentifier.getId(), submodelIdentifier.getId(), idShortPath));
 		}
 	}
@@ -236,51 +256,26 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 		idShort = VABPathTools.stripSlashes(idShort);
 		return !useWhitelist || whitelist.contains(idShort);
 	}
-
-//	private String getSubmodelId() {
-//		ISubmodel submodel = observedAPI.getSubmodel();
-//		return submodel.getIdentification().getId();
-//	}
 	
-	private static IIdentifier getSubmodelId2(ObservableSubmodelAPI observedAPI) {
+	private static IIdentifier getSubmodelId(ObservableSubmodelAPI observedAPI) {
 		ISubmodel submodel = observedAPI.getSubmodel();
-		System.out.println("Submodel Idshort : " + submodel.getIdShort());
 		return submodel.getIdentification();
 	}
-
-//	private String getAASId() {
-//		ISubmodel submodel = observedAPI.getSubmodel();
-//		IReference parentReference = submodel.getParent();
-//		System.out.println("Parent Ref : " + parentReference.toString());
-//		if (parentReference != null) {
-//			List<IKey> keys = parentReference.getKeys();
-//			System.out.println("Keys : " +keys.toString());
-//			if (keys != null && keys.size() > 0) {
-//				System.out.println("Key 0: " +keys.get(0).getIdType().toString());
-//				return keys.get(0).getValue();
-//			}
-//		}
-//		return null;
-//	}
 	
-	private static IIdentifier getAASId2(ObservableSubmodelAPI observedAPI) {
+	private static IIdentifier getAASId(ObservableSubmodelAPI observedAPI) {
 		ISubmodel submodel = observedAPI.getSubmodel();
 		IReference parentReference = submodel.getParent();
-		System.out.println("Parent Ref : " + parentReference.toString());
 		if (parentReference != null) {
 			List<IKey> keys = parentReference.getKeys();
-			System.out.println("Keys : " +keys.toString());
-			if (keys != null && keys.size() > 0) {
-				System.out.println("Key 0: " +keys.get(0).getIdType().toString());
-				IIdentifier aasId = createIdentifier(IdentifierType.fromString(keys.get(0).getIdType().toString()), keys.get(0).getValue());
-				System.out.println("AAS Id : " + aasId.toString());
-				System.out.println("AAS Id : " + aasId.getId());
-				System.out.println("AAS Id Type : " + aasId.getIdType());
-				return aasId;
+			if (doesKeysExists(keys)) {
+				return createIdentifier(IdentifierType.fromString(keys.get(0).getIdType().toString()), keys.get(0).getValue());
 			}
 		}
-		System.out.println("Returning Null");
 		return null;
+	}
+
+	private static boolean doesKeysExists(List<IKey> keys) {
+		return keys != null && !keys.isEmpty();
 	}
 	
 	private static IIdentifier createIdentifier(IdentifierType idType, String id) {
