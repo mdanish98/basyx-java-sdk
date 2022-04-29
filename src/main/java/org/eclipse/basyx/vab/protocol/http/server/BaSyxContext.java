@@ -87,8 +87,6 @@ public class BaSyxContext extends LinkedHashMap<String, HttpServlet> {
 
 	@Nullable
 	private JwtBearerTokenAuthenticationConfiguration jwtBearerTokenAuthenticationConfiguration;
-	
-	private String accessControlAllowOrigin;
 
 	/**
 	 * Constructor with default port
@@ -265,9 +263,5 @@ public class BaSyxContext extends LinkedHashMap<String, HttpServlet> {
 
 	public void setJwtBearerTokenAuthenticationConfiguration(@Nullable final JwtBearerTokenAuthenticationConfiguration jwtBearerTokenAuthenticationConfiguration) {
 		this.jwtBearerTokenAuthenticationConfiguration = jwtBearerTokenAuthenticationConfiguration;
-	}
-	
-	public void setCrossOriginResourceSharingConfiguration(@Nullable final String accessControlAllowOrigin) {
-		this.accessControlAllowOrigin = accessControlAllowOrigin;
 	}
 }

@@ -88,8 +88,7 @@ public class MqttSubmodelAPIObserverTest {
 
 		VABSubmodelAPI vabAPI = new VABSubmodelAPI(new VABMapProvider(sm));
 		observableAPI = new ObservableSubmodelAPI(vabAPI);
-		MqttSubmodelAPIObserver obs = new MqttSubmodelAPIObserver(observableAPI, "tcp://localhost:1884", "testClient");
-		System.out.println("Before obs : ");
+		new MqttSubmodelAPIObserver(observableAPI, "tcp://localhost:1884", "testClient");
 	}
 
 	@AfterClass
@@ -114,9 +113,6 @@ public class MqttSubmodelAPIObserverTest {
 		Property prop = new Property(true);
 		prop.setIdShort(elemIdShort);
 		observableAPI.addSubmodelElement(prop);
-		
-		System.out.println("Last Payload : " + listener.lastPayload);
-		System.out.println("Get Combined Msg : " + MqttSubmodelAPIObserver.getCombinedMessage(AASID, SUBMODELID, elemIdShort));
 
 		assertEquals(MqttSubmodelAPIObserver.getCombinedMessage(AASID, SUBMODELID, elemIdShort), listener.lastPayload);
 		assertEquals(MqttSubmodelAPIHelper.TOPIC_ADDELEMENT, listener.lastTopic);
