@@ -151,7 +151,6 @@ public class MqttSubmodelAPIObserver extends MqttEventService implements ISubmod
 	@Deprecated
 	public MqttSubmodelAPIObserver(ObservableSubmodelAPI observedAPI, String serverEndpoint, String clientId, String user, char[] pw) throws MqttException {
 		this(observedAPI, serverEndpoint, clientId, user, pw, new MqttDefaultFilePersistence());
-		System.out.print("In Constructor 3");
 	}
 
 	/**
