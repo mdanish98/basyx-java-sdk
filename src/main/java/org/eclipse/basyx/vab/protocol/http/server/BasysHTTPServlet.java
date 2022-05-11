@@ -54,6 +54,16 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 * Parameter map
 	 */
 	protected Map<String, String> servletParameter = new LinkedHashMap<>();
+	
+	protected String corsParam;
+
+	public String getCorsParam() {
+		return corsParam;
+	}
+
+	public void setCorsParam(String corsParam) {
+		this.corsParam = corsParam;
+	}
 
 	/**
 	 * GSON instance
@@ -65,6 +75,11 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 */
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("@#@#@#@#@#Execution at service starts###########" + getCorsParam());
+//		response.addHeader("Access-Control-Allow-Origin", "*");
+//		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
+//		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+		
 		if (request.getMethod().equalsIgnoreCase("PATCH")) {
 			doPatch(request, response);
 		} else {
