@@ -76,10 +76,11 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		System.out.println("@#@#@#@#@#Execution at service starts###########" + getCorsParam());
-//		response.addHeader("Access-Control-Allow-Origin", "*");
-//		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
-//		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
-		
+		if(getCorsParam() != null) {
+			response.addHeader("Access-Control-Allow-Origin", getCorsParam());
+			response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
+			response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+		}
 		if (request.getMethod().equalsIgnoreCase("PATCH")) {
 			doPatch(request, response);
 		} else {

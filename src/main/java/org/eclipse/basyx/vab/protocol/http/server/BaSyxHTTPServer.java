@@ -137,8 +137,12 @@ public class BaSyxHTTPServer {
 			// Servlet mapping
 			String mapping = entry.getKey();
 			HttpServlet servlet = entry.getValue();
-	
-			((BasysHTTPServlet) servlet).setCorsParam(context.getAccessControlAllowOrigin());
+			
+			try {
+				((BasysHTTPServlet) servlet).setCorsParam(context.getAccessControlAllowOrigin());
+			}catch (Exception e) {
+				System.out.println("Servlet Exception : " + e);
+			}
 
 			// Add new Servlet and Mapping to tomcat environment
 			Tomcat.addServlet(rootCtx, Integer.toString(servlet.hashCode()), servlet);
