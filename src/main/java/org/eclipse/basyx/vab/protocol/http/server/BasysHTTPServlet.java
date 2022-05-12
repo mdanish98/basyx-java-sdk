@@ -40,7 +40,7 @@ import org.eclipse.basyx.vab.coder.json.serialization.GSONTools;
 /**
  * HTTP Servelet superclass to enable HTTP Patch
  * 
- * @author pschorn
+ * @author pschorn, danish
  *
  */
 public abstract class BasysHTTPServlet extends HttpServlet {
