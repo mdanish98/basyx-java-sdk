@@ -41,7 +41,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 public class MqttDecoratingSubmodelAPIFactory implements ISubmodelAPIFactory {
 	private ISubmodelAPIFactory apiFactory;
 	private MqttClient client;
-	private MqttSubmodelAPIObserver mqttSubmodelAPIObserver;
 
 	public MqttDecoratingSubmodelAPIFactory(ISubmodelAPIFactory factoryToBeDecorated, MqttClient client) {
 		this.apiFactory = factoryToBeDecorated;
@@ -52,8 +51,7 @@ public class MqttDecoratingSubmodelAPIFactory implements ISubmodelAPIFactory {
 	public ISubmodelAPI getSubmodelAPI(Submodel submodel) {
 		try {
 			ObservableSubmodelAPI observedAPI = new ObservableSubmodelAPI(apiFactory.create(submodel));
-			mqttSubmodelAPIObserver = new MqttSubmodelAPIObserver(client, MqttSubmodelAPIHelper.getAASId(observedAPI), MqttSubmodelAPIHelper.getSubmodelId(observedAPI), observedAPI);
-			observedAPI.addObserver(mqttSubmodelAPIObserver);
+			new MqttSubmodelAPIObserver(observedAPI, client);
 			return observedAPI;
 		} catch (MqttException e) {
 			throw new ProviderException(e);
