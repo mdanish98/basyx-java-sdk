@@ -139,7 +139,7 @@ public class BaSyxHTTPServer {
 			HttpServlet servlet = entry.getValue();
 			
 			try {
-				((BasysHTTPServlet) servlet).setCorsParam(context.getAccessControlAllowOrigin());
+				((BasysHTTPServlet) servlet).setCorsOrigin(context.getAccessControlAllowOrigin());
 			}catch (Exception e) {
 				System.out.println("Servlet Exception : " + e);
 			}

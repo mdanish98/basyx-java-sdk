@@ -55,15 +55,7 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 */
 	protected Map<String, String> servletParameter = new LinkedHashMap<>();
 	
-	protected String corsParam;
-
-	public String getCorsParam() {
-		return corsParam;
-	}
-
-	public void setCorsParam(String corsParam) {
-		this.corsParam = corsParam;
-	}
+	protected String corsOrigin;
 
 	/**
 	 * GSON instance
@@ -75,16 +67,20 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 */
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("@#@#@#@#@#Execution at service starts###########" + getCorsParam());
-		if(getCorsParam() != null) {
-			response.addHeader("Access-Control-Allow-Origin", getCorsParam());
-			response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
-			response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
-		}
+		enableCORSIfRequired(response);
+		
 		if (request.getMethod().equalsIgnoreCase("PATCH")) {
 			doPatch(request, response);
 		} else {
 			super.service(request, response);
+		}
+	}
+
+	private void enableCORSIfRequired(HttpServletResponse response) {
+		if(getCorsOrigin() != null) {
+			response.addHeader("Access-Control-Allow-Origin", getCorsOrigin());
+			response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
+			response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
 		}
 	}
 
@@ -125,6 +121,14 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 		// Output result
 		outputStream.write(serializer.serialize(value));
 		outputStream.flush();
+	}
+	
+	public String getCorsOrigin() {
+		return corsOrigin;
+	}
+
+	public void setCorsOrigin(String corsParam) {
+		this.corsOrigin = corsParam;
 	}
 
 }
