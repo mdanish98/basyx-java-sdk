@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.basyx.vab.coder.json.serialization.DefaultTypeFactory;
 import org.eclipse.basyx.vab.coder.json.serialization.GSONTools;
+import org.springframework.lang.Nullable;
 
 /**
  * HTTP Servelet superclass to enable HTTP Patch
@@ -55,6 +56,7 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	 */
 	protected Map<String, String> servletParameter = new LinkedHashMap<>();
 	
+	@Nullable
 	protected String corsOrigin;
 
 	/**
@@ -77,11 +79,17 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 	}
 
 	private void enableCORSIfRequired(HttpServletResponse response) {
-		if(getCorsOrigin() != null) {
-			response.addHeader("Access-Control-Allow-Origin", getCorsOrigin());
-			response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
-			response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+		if(!isCorsOriginDefined()) {
+			return;
 		}
+		
+		response.addHeader("Access-Control-Allow-Origin", getCorsOrigin());
+		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
+		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+	}
+
+	private boolean isCorsOriginDefined() {
+		return getCorsOrigin() != null;
 	}
 
 	/**
@@ -127,7 +135,7 @@ public abstract class BasysHTTPServlet extends HttpServlet {
 		return corsOrigin;
 	}
 
-	public void setCorsOrigin(String corsParam) {
+	public void setCorsOrigin(@Nullable String corsParam) {
 		this.corsOrigin = corsParam;
 	}
 

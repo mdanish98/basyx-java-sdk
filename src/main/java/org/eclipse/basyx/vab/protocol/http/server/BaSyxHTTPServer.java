@@ -128,26 +128,39 @@ public class BaSyxHTTPServer {
 
 		context.getJwtBearerTokenAuthenticationConfiguration().ifPresent(jwtBearerTokenAuthenticationConfiguration -> addSecurityFiltersToContext(rootCtx, jwtBearerTokenAuthenticationConfiguration));
 
-		// Iterate all servlets in context
-		Iterator<Entry<String, HttpServlet>> it = context.entrySet().iterator();
-		while (it.hasNext()) {
-			// Servlet entry
-			Entry<String, HttpServlet> entry = it.next();
-
-			// Servlet mapping
-			String mapping = entry.getKey();
-			HttpServlet servlet = entry.getValue();
-			
-			try {
-				((BasysHTTPServlet) servlet).setCorsOrigin(context.getAccessControlAllowOrigin());
-			}catch (Exception e) {
-				System.out.println("Servlet Exception : " + e);
-			}
-
-			// Add new Servlet and Mapping to tomcat environment
-			Tomcat.addServlet(rootCtx, Integer.toString(servlet.hashCode()), servlet);
-			rootCtx.addServletMappingDecoded(mapping, Integer.toString(servlet.hashCode()));
+		Iterator<Entry<String, HttpServlet>> servletIterator = context.entrySet().iterator();
+		
+		while (servletIterator.hasNext()) {
+			addNewServletAndMappingToTomcatEnvironment(context, rootCtx, servletIterator);
 		}
+	}
+
+	private void addNewServletAndMappingToTomcatEnvironment(BaSyxContext context, final Context rootCtx, Iterator<Entry<String, HttpServlet>> servletIterator) {
+		Entry<String, HttpServlet> entry = servletIterator.next();
+
+		String mapping = entry.getKey();
+		HttpServlet servlet = entry.getValue();
+		
+		setCorsOriginToServlet(context, servlet);
+
+		Tomcat.addServlet(rootCtx, Integer.toString(servlet.hashCode()), servlet);
+		rootCtx.addServletMappingDecoded(mapping, Integer.toString(servlet.hashCode()));
+	}
+
+	private void setCorsOriginToServlet(BaSyxContext context, HttpServlet servlet) {
+		if(!isCorsOriginDefined(context)) {
+			return;
+		}
+		
+		try {
+			((BasysHTTPServlet) servlet).setCorsOrigin(context.getAccessControlAllowOrigin());
+		} catch (RuntimeException e) {
+			logger.info("DefaultServlet cannot be cast to BasysHTTPServlet " + e);
+		}
+	}
+
+	private boolean isCorsOriginDefined(BaSyxContext context) {
+		return context.getAccessControlAllowOrigin() != null;
 	}
 
 	private void addSecurityFiltersToContext(final Context context, final JwtBearerTokenAuthenticationConfiguration jwtBearerTokenAuthenticationConfiguration) {
